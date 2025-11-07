@@ -1,0 +1,35 @@
+{
+    "extends": "airbnb-base",
+    "env": {
+      "es6": true,
+      "browser": true,
+      "jest": true
+    },
+    "parserOptions": {
+      "ecmaVersion": 2022,
+      "sourceType": "module",
+      "ecmaFeatures": {
+        "classFields": true
+      }
+    },
+    "rules": {
+      "no-restricted-syntax": [
+        "error",
+        "LabeledStatement",
+        "WithStatement"
+      ],
+      "no-underscore-dangle": "off",
+      "class-methods-use-this": "off",
+      "indent": [
+        "error",
+        "tab"
+      ],
+      "no-tabs": "off",
+      "linebreak-style": [
+        "error",
+        "windows"
+      ],
+      "no-plusplus": "off",
+      "import/extensions": "off"
+    }
+}

@@ -1,0 +1,247 @@
+body {
+  background-color: lightgray;
+}
+
+.panel__header {
+  position: relative;
+  height: 24px;
+  margin: 15px;
+  margin-bottom: 0px;
+  background: darkgray;
+  border-radius: 10px 10px 0px 0px;
+}
+
+.panel__header::before {
+  content: "";
+  position: absolute;
+  top: 6px; left: 8px;
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: #818080;
+  box-shadow:
+    20px 0 0 #818080,
+    40px 0 0 #818080;
+}
+
+.panel {
+  display: flex;
+  position: relative;
+  margin: 15px;
+  margin-top: 0px;
+  padding: 15px;
+  background-image: url('../../pictures/panel_background.jpg');
+  background-size: 90%;
+}
+
+.ticket__add {
+  position: absolute;
+  right: 15px;
+  width: 10em;
+  height: 3em;
+  border: solid thin black;
+  border-radius: 10px;
+  background: white;
+}
+
+.tickets {
+  list-style: none;
+  width: 100%;
+  margin: 0;
+  margin-top: 50px;
+  padding-left: 0px;
+  border: solid thin black;
+  background: white;
+}
+
+.ticket {
+  display: flex;
+  align-items: center;
+  padding: 0.5em 1em;
+  flex-wrap: wrap;
+  border: solid thin black;
+}
+
+.ticket__toggle {
+  width: 1.5em; height: 1.5em;
+  margin-right: 1em;
+  border: 2px solid #888;
+  border-radius: 50%;
+  background: none;
+  position: relative;
+  cursor: pointer;
+}
+
+.ticket__toggle[data-checked="true"]::after {
+  content: "✔";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9em;
+  color: green;
+}
+
+.ticket__title {
+  flex: 1;
+}
+
+.ticket__description {
+  flex: 1;
+  display: none;
+  white-space: pre-wrap;
+}
+
+.ticket__description.active {
+  display: block;
+  flex-basis: 100%;
+  margin-top: 0.5em;
+  padding-left: 2em;
+  padding-right: 13em;
+}
+
+.ticket__date {
+  white-space: nowrap;
+  margin: 0 1em;
+  color: #666;
+}
+.ticket__edit, .ticket__delete {
+  width: 1.5em; height: 1.5em;
+  border: 2px solid #888;
+  border-radius: 50%;
+  background: none;
+  margin-left: 0.5em;
+  position: relative;
+  cursor: pointer;
+}
+
+.ticket__edit::before {
+  content: "✎";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ticket__delete::before {
+  content: "×";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn_group {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  justify-content: flex-end;
+  align-self: flex-end;
+  min-width: 90px;
+  padding: 6px 12px;
+  flex: 0 0 auto;
+}
+
+.add_or_edit_form_title {
+  display: block;
+  text-align: center;
+  margin-bottom: 6px;
+  white-space: nowrap;
+}
+
+.add_or_edit_form {
+  position: absolute;
+  left: 50%;
+  top: 10%;
+  transform: translateX(-50%);
+  max-width: 80%;
+  min-width: 60%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: stretch;
+  gap: 6px;
+  padding: 16px;
+  border: solid thin;
+  border-radius: 10px;
+  background: white;
+  box-sizing: border-box;
+}
+
+.add_or_edit_form.disabled {
+  visibility: hidden;
+}
+
+.del_warn_title {
+  display: block;
+  text-align: center;
+  margin-bottom: 6px;
+  white-space: nowrap;
+}
+
+.del_warn_window {
+  position: absolute;
+  left: 50%;
+  top: 10%;
+  transform: translateX(-50%);
+  max-width: 80%;
+  min-width: 60%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: stretch;
+  gap: 6px;
+  padding: 16px;
+  border: solid thin;
+  border-radius: 10px;
+  background: white;
+  box-sizing: border-box;
+}
+
+.del_warn_window.disabled {
+  visibility: hidden;
+}
+
+.add_or_edit_form input,
+.add_or_edit_form textarea {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  font: inherit;
+  padding: 8px;
+  border: 1px solid #bbb;
+  border-radius: 4px;
+}
+
+.add_or_edit_form button {
+  position: static;
+  z-index: auto;
+  flex: 0 0 auto;
+  margin: 0;
+  min-width: 90px;
+  padding: 10px 16px;
+  border-radius: 16px;
+  border: 1px solid #aaa;
+  background: #f4f4f6;
+}
+
+.add_or_edit_form textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.btn_group button {
+  min-width: 90px;
+  padding: 6px 12px;
+}
+
+.btn_group {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  align-self: flex-end;
+  position: relative;
+}
