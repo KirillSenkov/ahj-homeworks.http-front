@@ -1,5 +1,7 @@
+import doRequest from './doRequest.js';
+
 export default class Forms {
-	// create sinle ticket element from an object
+	// creates sinle ticket element from an object
 	static makeTicketLiElt(item) {
 		const ticket = document.createElement('li');
 		const status = document.createElement('button');
@@ -38,12 +40,13 @@ export default class Forms {
 		return ticket;
 	}
 
-	// create the whole page outfit
-	static makeView(list) {
+	// creates the whole page outfit
+	static async makeView() {
 		const panelHeader = document.createElement('div');
 		const panel = document.createElement('div');
 		const addBtn = document.createElement('button');
 		const ticketsList = document.createElement('ul');
+		const allTickets = await doRequest('allTickets');
 
 		panelHeader.className = 'panel__header';
 		panel.className = 'panel';
@@ -55,7 +58,7 @@ export default class Forms {
 
 		panel.append(addBtn, ticketsList);
 
-		for (const item of list) {
+		for (const item of allTickets) {
 			const ticketLiElt = Forms.makeTicketLiElt(item);
 
 			ticketsList.append(ticketLiElt);
@@ -65,34 +68,18 @@ export default class Forms {
 	}
 
 	// reload just tickets list
-	static refreshList() {
-		const xhr = new XMLHttpRequest();
+	static async refreshList() {
+		const allTickets = await doRequest('allTickets');
+		const ticketsListElt = document.body.querySelector('.panel')
+			.querySelector('.tickets');
 
-		xhr.open('GET', 'http://localhost:7070?method=allTickets');
+		ticketsListElt.replaceChildren();
 
-		xhr.addEventListener('load', () => {
-			if (xhr.status >= 200 && xhr.status < 300) {
-				let data;
-				try {
-					data = JSON.parse(xhr.responseText);
-				} catch (e) {
-					return console.error('Не JSON:', e);
-				}
+		for (const item of allTickets) {
+			const ticketLiElt = Forms.makeTicketLiElt(item);
 
-				const ticketsListElt = document.body.querySelector('.panel')
-					.querySelector('.tickets');
-
-				ticketsListElt.replaceChildren();
-
-				for (const item of data) {
-					const ticketLiElt = Forms.makeTicketLiElt(item);
-
-					ticketsListElt.insertAdjacentElement('beforeend', ticketLiElt);
-				}
-			}
-		});
-
-		xhr.send();
+			ticketsListElt.append(ticketLiElt);
+		}
 	}
 
 	// creation of the add/edit ticket form
@@ -106,8 +93,7 @@ export default class Forms {
 		const btnGroup = document.createElement('div');
 		const okBtn = document.createElement('button');
 		const cancelBtn = document.createElement('button');
-
-		okBtn.className = 'confirm';
+		let panel;
 
 		labelName.textContent = 'Краткое описание';
 		name.placeholder = 'Введите краткое описание';
@@ -135,8 +121,6 @@ export default class Forms {
 			btnGroup,
 		);
 
-		let panel;
-
 		if (event.currentTarget.className === 'ticket__add') {
 			panel = event.currentTarget.parentElement;
 		} else {
@@ -147,7 +131,7 @@ export default class Forms {
 	}
 
 	// using of the add/edit ticket form if it exits allready OR NOT
-	static useTicketAddOrEditForm(event) {
+	static async useTicketAddOrEditForm(event) {
 		let addOrEditForm = Forms.getTicketAddOrEditFormElt(event.currentTarget);
 
 		if (!addOrEditForm) {
@@ -183,30 +167,10 @@ export default class Forms {
 					.querySelector('.ticket__description').textContent;
 				addOrEditForm.dataset.id = ticketID;
 			} else {
-				const xhr = new XMLHttpRequest();
-				const url = new URL('http://localhost:7070');
+				const data = await doRequest('ticketById', { id: ticketID });
 
 				addOrEditForm.dataset.id = ticketID;
-
-				url.searchParams.set('method', 'ticketById');
-				url.searchParams.set('id', ticketID);
-				xhr.open('GET', url.toString());
-
-				xhr.addEventListener('load', () => {
-					if (xhr.status >= 200 && xhr.status < 300) {
-						let data;
-						try {
-							data = JSON.parse(xhr.responseText);
-						} catch (err) {
-							console.log(`xhr.responseText: >${xhr.responseText}<`);
-							console.error(`Не JSON: >${err}<`);
-						}
-
-						description.value = data.description;
-					}
-				});
-
-				xhr.send();
+				description.value = data.description;
 			}
 		}
 	}
@@ -217,83 +181,61 @@ export default class Forms {
 	}
 
 	// guess what
-	static addTicket(event) {
+	static async addTicket(event) {
 		if (event.currentTarget.dataset.action !== 'add') return;
 
 		const newTicketFormElt = Forms.getTicketAddOrEditFormElt(event.currentTarget);
+		const name = newTicketFormElt.children[2].value.trim();
 		const body = new FormData();
-		const xhr = new XMLHttpRequest();
 
-		// here it is absolutely redundant. only ONE single possible POST-request is assumed.
-		// const url = new URL('http://localhost:7070');
-		// url.searchParams.set('method', 'createTicket');
+		if (!name) {
+			alert('Тикет с пустым кратким описанием не может быть сохранён');
+			return;
+		}
 
-		body.append('name', newTicketFormElt.children[2].value);
+		body.append('name', name);
 		body.append('description', newTicketFormElt.children[4].value);
+		await doRequest('createTicket', body);
+		newTicketFormElt.classList.add('disabled');
 
-		xhr.onreadystatechange = function () {
-			if (xhr.readyState !== 4) return;
-
-			newTicketFormElt.classList.add('disabled');
-			Forms.refreshList();
-		};
-
-		xhr.open('POST', 'http://localhost:7070');
-		xhr.send(body);
+		Forms.refreshList();
 	}
 
-	// i wonder what the function`s doeing
-	static editTicket(event) {
+	// i wonder what`s the function doeing
+	static async editTicket(event) {
 		if (event.currentTarget.dataset.action !== 'edit') return;
 
-		const newTicketFormElt = Forms.getTicketAddOrEditFormElt(event.currentTarget);
+		const editTicketFormElt = Forms.getTicketAddOrEditFormElt(event.currentTarget);
+		const name = editTicketFormElt.children[2].value.trim();
 		const body = new FormData();
-		const xhr = new XMLHttpRequest();
-		const url = new URL('http://localhost:7070');
 
-		url.searchParams.set('method', 'updateById');
-		url.searchParams.set('id', newTicketFormElt.dataset.id);
+		if (!name) {
+			alert('Тикет с пустым кратким описанием не может быть сохранён');
+			return;
+		}
 
-		body.append('name', newTicketFormElt.children[2].value);
-		body.append('description', newTicketFormElt.children[4].value);
-
-		xhr.onreadystatechange = function () {
-			if (xhr.readyState !== 4) return;
-			newTicketFormElt.classList.add('disabled');
-			Forms.refreshList();
-		};
-
-		xhr.open('PATCH', url);
-		xhr.send(body);
+		body.append('id', editTicketFormElt.dataset.id);
+		body.append('name', name);
+		body.append('description', editTicketFormElt.children[4].value);
+		await doRequest('updateById', body);
+		editTicketFormElt.classList.add('disabled');
+		Forms.refreshList();
 	}
 
 	// for using from the deletion warning modal window
-	static deleteTicket(event) {
+	static async deleteTicket(event) {
 		const warnWindow = event.currentTarget.parentElement.parentElement;
-		const ticketID = warnWindow.dataset.id;
-		const body = new FormData();
-		const xhr = new XMLHttpRequest();
-		const url = new URL('http://localhost:7070');
 
-		url.searchParams.set('method', 'deleteById');
-		url.searchParams.set('id', ticketID);
-		body.append('superSecretPassword', 'QWERTY');
-
-		xhr.onreadystatechange = function () {
-			if (xhr.readyState !== 4) return;
-			if (xhr.status === 204) {
-				warnWindow.classList.add('disabled');
-				Forms.refreshList();
-			}
-		};
-
-		xhr.open('DELETE', url);
-		xhr.send(body);
+		await doRequest('deleteById', { id: warnWindow.dataset.id });
+		warnWindow.classList.add('disabled');
+		Forms.refreshList();
 	}
 
 	// changes a ticket status
-	static toggleStatus(event) {
+	static async toggleStatus(event) {
 		const toggleStatusBtn = event.currentTarget;
+		const ticketID = toggleStatusBtn.parentElement.dataset.id;
+		const isChecked = toggleStatusBtn.dataset.checked === 'true';
 
 		if (toggleStatusBtn.dataset.hold === 'true') {
 			alert('Wait a second. Don\'t be so hasty.');
@@ -301,68 +243,43 @@ export default class Forms {
 		}
 
 		toggleStatusBtn.dataset.hold = 'true';
-
-		const xhr = new XMLHttpRequest();
-		const ticketID = event.currentTarget.parentElement.dataset.id;
-
-		xhr.open('PATCH', `http://localhost:7070?method=toggleStatus&id=${ticketID}`);
-
-		xhr.addEventListener('load', () => {
-			if (xhr.status >= 200 && xhr.status < 300) {
-				const isChecked = toggleStatusBtn.dataset.checked === 'true';
-
-				toggleStatusBtn.dataset.checked = String(!isChecked);
-				toggleStatusBtn.dataset.hold = 'false';
-			}
-		});
-
-		xhr.send();
+		await doRequest('toggleStatus', { id: ticketID });
+		toggleStatusBtn.dataset.checked = String(!isChecked);
+		toggleStatusBtn.dataset.hold = 'false';
 	}
 
-	// shows description for a single ticket of the whole list
-	static showDescription(event) {
-		if (event.target.tagName === 'BUTTON') return;
-
-		const description = event.currentTarget.querySelector('.ticket__description');
-
-		if (description && description.classList.contains('active')) return;
-
-		const allActiveDescriptions = event.currentTarget.parentElement
-			.querySelectorAll('.ticket__description.active');
+	// hides all descriptions
+	static hideAllDescriptions(ticketsList) {
+		const allActiveDescriptions = ticketsList.querySelectorAll('.ticket__description.active');
 
 		for (const descr of allActiveDescriptions) descr.classList.remove('active');
+	}
+
+	// shows/hides description for a single ticket of the whole list
+	static async showDescription(event) {
+		if (event.target.tagName === 'BUTTON') return;
+
+		const ticket = event.currentTarget;
+		const description = ticket.querySelector('.ticket__description');
+
+		if (description && description.classList.contains('active')) {
+			description.classList.remove('active');
+			return;
+		}
+
+		Forms.hideAllDescriptions(ticket.parentElement);
 
 		if (description) {
 			description.classList.add('active');
 			return;
 		}
 
-		const ticket = event.currentTarget;
-		const xhr = new XMLHttpRequest();
-		const url = new URL('http://localhost:7070');
+		const data = await doRequest('ticketById', { id: ticket.dataset.id });
+		const newDescription = document.createElement('span');
 
-		url.searchParams.set('method', 'ticketById');
-		url.searchParams.set('id', event.currentTarget.dataset.id);
-		xhr.open('GET', url.toString());
-
-		xhr.addEventListener('load', () => {
-			if (xhr.status >= 200 && xhr.status < 300) {
-				let data;
-				try {
-					data = JSON.parse(xhr.responseText);
-				} catch (err) {
-					console.log(`xhr.responseText: >${xhr.responseText}<`);
-					console.error(`Не JSON: >${err}<`);
-				}
-
-				const newDescription = document.createElement('span');
-				newDescription.classList = 'ticket__description active';
-				newDescription.textContent = data.description;
-				ticket.append(newDescription);
-			}
-		});
-
-		xhr.send();
+		newDescription.classList = 'ticket__description active';
+		newDescription.textContent = data.description;
+		ticket.append(newDescription);
 	}
 
 	// just creation of the deletion warning window element in the main panel

@@ -1,0 +1,46 @@
+{
+  "extends": ["airbnb-base"],
+  "env": {
+    "es6": true,
+    "es2022": true,
+    "browser": true,
+    "jest": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 2022,
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "classFields": true
+    }
+  },
+  "ignorePatterns": [
+    "node_modules/",
+    "dist/",
+    "build/",
+    "docs/",
+    "coverage/"
+  ],
+  "rules": {
+    "no-restricted-syntax": ["error", "LabeledStatement", "WithStatement"],
+    "no-underscore-dangle": "off",
+    "class-methods-use-this": "off",
+    "indent": ["error", "tab"],
+    "no-tabs": "off",
+    "linebreak-style": ["error", "windows"],
+    "no-plusplus": "off",
+    "import/extensions": "off",
+    "no-console": ["warn", { "allow": ["warn", "error"] }],
+    "consistent-return": "off",
+    "func-names": "off",
+    "no-alert": "warn"
+  },
+  "overrides": [
+    {
+      "files": ["webpack.*.js", "**/*.config.js", "**/*.config.cjs", "**/*.config.mjs"],
+      "env": { "node": true },
+      "rules": {
+        "import/no-extraneous-dependencies": ["error", { "devDependencies": true }]
+      }
+    }
+  ]
+}
